@@ -1,54 +1,71 @@
-import Account
+from Driver import Driver
 import unittest
 import os
 import pandas as pd
 
 class TestAccount(unittest.TestCase):
     def setUp(self):
-        self.fresh_account = Account.Account('Michael', [], 0)
+        # if (os.path.exists('test.db') == True):
+        #     os.remove('test.db')
+        # if (os.path.exists('ext_test.db') == True):
+        #     os.remove('ext_test.db')
+
+        # Driver is our base testing, while driver_io is for import/export testing
+        self.driver = Driver('./Databases/test.db')
+        self.driver_io = Driver('./Databases/ext_test.db')
     
-    def test_initialConditions(self):
-        self.assertTrue(self.fresh_account.name == 'Michael')
-        self.assertEqual(len(self.fresh_account.transaction_categories), 3)
-        self.assertEqual(len(self.fresh_account.transaction_history), 0)
-        self.assertEqual(len(self.fresh_account.dataframe), 0)
+    def test_createAccount(self):
+        self.driver.create_account('Michael')
+        self.assertTrue(self.driver.read_account(1) == 'Michael')
     
-    def test_create_category(self):
-        self.fresh_account.create_category('Reserve Funds')
-        self.assertTrue('Reserve Funds' in self.fresh_account.transaction_categories)
-        self.fresh_account.create_category(120385)
-        self.assertFalse(120385 in self.fresh_account.transaction_categories)
+    def test_transactionCreateAndRead(self):
+        self.driver.create_transaction(acc_id=1, amt=727.61, category='Paycheck')
+        # First set of transactions
+        self.assertTrue(self.driver.read_transaction(1, 1).TransactionID == 1)
+        self.assertTrue(self.driver.read_transaction(1, 1).AccountID == 1)
+        self.assertTrue(self.driver.read_transaction(1, 1).Transaction_Category == 'Paycheck')
+        self.assertTrue(self.driver.read_transaction(1, 1).Quantity == 727.61)
 
-    def test_delete_category(self):
-        self.fresh_account.create_category('Category For Deletion')
-        self.assertTrue('Category For Deletion' in self.fresh_account.transaction_categories)
-        self.fresh_account.delete_category('Category For Deletion')
-    
-    def test_deposit(self):
-        self.fresh_account.transaction_deposit(100,'Income')
-        self.assertEqual(self.fresh_account.dataframe.iloc[0]['amount'], 100)
-        self.assertEqual(self.fresh_account.dataframe.iloc[0]['category'], 'Income')
-        self.assertEqual(self.fresh_account.dataframe.iloc[0]['transaction_type'], 'Deposit')
+        # Second set of transactions
+        self.driver.create_transaction(1, 89.61, '401k')
+        self.assertTrue(self.driver.read_transaction(1, 2).TransactionID == 2)
+        self.assertTrue(self.driver.read_transaction(1, 2).AccountID == 1)
+        self.assertTrue(self.driver.read_transaction(1, 2).Transaction_Category == '401k')
+        self.assertTrue(self.driver.read_transaction(1, 2).Quantity == 89.61)
 
-    def test_withdraw(self):
-        self.fresh_account.transaction_withdraw(25,'Temporary Loans')
-        self.assertEqual(self.fresh_account.dataframe.iloc[0]['amount'], 25)
-        self.assertEqual(self.fresh_account.dataframe.iloc[0]['category'], 'Temporary Loans')
-        self.assertEqual(self.fresh_account.dataframe.iloc[0]['transaction_type'], 'Withdraw')
+    def test_transactionDelete(self):
+        # Delete Test
+        self.driver.create_transaction(1, 123.84, 'Groceries')
+        self.driver.delete_transaction(1, 3)
+        self.assertEqual(self.driver.read_transaction(1, 3), 'No result found')
 
-    def test_export(self):
-        self.fresh_account.transaction_deposit(100,'Income')
-        self.fresh_account.export_data('./temp_test.csv')
-        self.assertTrue(os.path.exists('./temp_test.csv'))
+        # Confirm other transaction is not broken from delete
+        self.assertTrue(self.driver.read_transaction(1, 1).TransactionID == 1)
+        self.assertTrue(self.driver.read_transaction(1, 1).AccountID == 1)
+        self.assertTrue(self.driver.read_transaction(1, 1).Transaction_Category == 'Paycheck')
+        self.assertTrue(self.driver.read_transaction(1, 1).Quantity == 727.61)
 
-    def test_import(self):
-        self.fresh_account.dataframe = []
-        self.assertTrue(type(self.fresh_account.dataframe) == list)
-        self.fresh_account.import_data('./temp_test.csv')
-        self.assertEqual(self.fresh_account.dataframe.iloc[0]['amount'], 100)
-        self.assertEqual(self.fresh_account.dataframe.iloc[0]['category'], 'Income')
-        self.assertEqual(self.fresh_account.dataframe.iloc[0]['transaction_type'], 'Deposit')
-        os.remove('./temp_test.csv') # Comment this line out if you want to confirm the csv is properly made
+    def test_export_import(self):
+        self.driver_io.create_account('Michael')
+        self.driver_io.create_transaction(1, 727.61, 'Paycheck')
+        self.driver_io.create_transaction(1, 123.84, 'Groceries')
+        self.driver_io.create_transaction(1, 89.61, '401k')
+        self.driver_io.export_accounts('./acc_test.csv')
+        self.driver_io.export_transactions('./transaction_test.csv')
+        self.assertTrue(os.path.exists('./acc_test.csv'))
+        self.assertTrue(os.path.exists('./transaction_test.csv'))
+
+        self.driver_io.import_accounts('./acc_test.csv')
+        self.driver_io.import_transactions('./transaction_test.csv')
+        self.assertTrue(self.driver_io.read_account(1) == 'Michael')
+        self.assertTrue(self.driver_io.read_transaction(1, 1).TransactionID == 1)
+        self.assertTrue(self.driver_io.read_transaction(1, 1).AccountID == 1)
+        self.assertTrue(self.driver_io.read_transaction(1, 1).Transaction_Category == 'Paycheck')
+        self.assertTrue(self.driver_io.read_transaction(1, 1).Quantity == 727.61)
+
+        os.remove('./acc_test.csv') # Comment these lines out if you want to confirm the csv is properly made
+        os.remove('./transaction_test.csv')
+
     
 
 
