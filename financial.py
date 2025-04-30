@@ -47,16 +47,14 @@ class FinancialHistory(QWidget):
     def fetch_transactions(self):
         # ID has to be added by 1 because SQL tables are not zero-indexed, while QComboBoxes are
         account = self.user.select_account(self.session, self.account_combo.currentIndex() + 1)
-        transactions = account.fetch_transactions(self.session)
         self.table.clearContents()
-        print(transactions)
-        for rowNum in range(len(transactions)):
+        for rowNum in range(len(account.transactions)):
             self.table.insertRow(rowNum)
             # Must be stringified, PyQT's table widget doesn't accept floats or datetimes
-            self.table.setItem(rowNum, 0, QTableWidgetItem(str(transactions[rowNum].id)))
-            self.table.setItem(rowNum, 1, QTableWidgetItem(transactions[rowNum].description))
-            self.table.setItem(rowNum, 2, QTableWidgetItem(str(transactions[rowNum].amount)))
-            self.table.setItem(rowNum, 3, QTableWidgetItem(str(transactions[rowNum].date)))
+            self.table.setItem(rowNum, 0, QTableWidgetItem(str(account.transactions[rowNum].id)))
+            self.table.setItem(rowNum, 1, QTableWidgetItem(account.transactions[rowNum].description))
+            self.table.setItem(rowNum, 2, QTableWidgetItem(str(account.transactions[rowNum].amount)))
+            self.table.setItem(rowNum, 3, QTableWidgetItem(str(account.transactions[rowNum].date)))
         self.table.resizeColumnsToContents()
 
 

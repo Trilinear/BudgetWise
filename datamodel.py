@@ -10,9 +10,6 @@ class User(Base):
     username = Column(String, unique=True)
     password = Column(String)
     accounts = relationship('Account', back_populates='user')
-
-    def fetch_accounts(self, session):
-        return session.query(Account).filter(Account.user_id == self.id).all()
     
     def select_account(self, session, account_id):
         try:
@@ -33,9 +30,6 @@ class Account(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship('User', back_populates='accounts')
     transactions = relationship('Transaction', back_populates='account')
-
-    def fetch_transactions(self, session):
-        return session.query(Transaction).filter(Transaction.account_id == self.id).all()
     
     def select_transaction(self, session, transaction_id):
         try:

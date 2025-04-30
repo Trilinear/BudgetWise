@@ -57,15 +57,17 @@ class ExpensePage(QWidget):
 
     def add_expense(self):
         # Fetch the account that the dropdown is on right now to create the transaction
-        account_fetch = self.session.query(Account).filter(Account.id == self.user.accounts[self.account_combo.currentIndex()].id).scalar()
+        # ID has to be added by 1 because SQL tables are not zero-indexed, while QComboBoxes are
+        account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex() + 1)
         new_transaction = Transaction(account_id=account_fetch.id, amount=self.amount_input.text(), 
                                     description=self.category_input.text(), date=datetime.now())
         # Add operation abstracted to Transaction class
         new_transaction.add_transaction(self.session)
 
     def delete_expense(self):
-        account_fetch = self.session.query(Account).filter(Account.id == self.user.accounts[self.account_combo.currentIndex()].id).scalar()
-        transaction = self.session.query(Transaction).filter(Transaction.id == self.id_input.text()).scalar()
+        # ID has to be added by 1 because SQL tables are not zero-indexed, while QComboBoxes are
+        account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex() + 1)
+        transaction = account_fetch.select_transaction(self.session, self.id_input.text())
         if transaction.account_id == account_fetch.id:
             # Delete operation abstracted to Transaction class
             transaction.delete_transaction(self.session)
