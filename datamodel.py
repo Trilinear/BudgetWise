@@ -45,6 +45,7 @@ class Transaction(Base):
     __tablename__ = 'transactions'
     id = Column(Integer, primary_key=True)
     amount = Column(Float)
+    category = Column(String)
     description = Column(String)
     account_id = Column(Integer, ForeignKey('accounts.id'))
     date = Column(DateTime)

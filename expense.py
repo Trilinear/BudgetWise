@@ -35,6 +35,12 @@ class ExpensePage(QWidget):
         layout.addWidget(self.category_label)
         layout.addWidget(self.category_input)
 
+        #Description 
+        self.description_label = QLabel("Description:")
+        self.description_input = QLineEdit()
+        layout.addWidget(self.description_label)
+        layout.addWidget(self.description_input)
+
 
         self.add_expense_query = QPushButton("Add Expenses")
         self.add_expense_query.clicked.connect(self.add_expense)
@@ -59,8 +65,11 @@ class ExpensePage(QWidget):
         # Fetch the account that the dropdown is on right now to create the transaction
         # ID has to be added by 1 because SQL tables are not zero-indexed, while QComboBoxes are
         account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex() + 1)
-        new_transaction = Transaction(account_id=account_fetch.id, amount=self.amount_input.text(), 
-                                    description=self.category_input.text(), date=datetime.now())
+        new_transaction = Transaction(account_id=account_fetch.id, 
+                                      amount=self.amount_input.text(), 
+                                      category = self.category_input.text(), 
+                                      description=self.description_input.text(),
+                                      date=datetime.now())
         # Add operation abstracted to Transaction class
         new_transaction.add_transaction(self.session)
 
