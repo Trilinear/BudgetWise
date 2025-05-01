@@ -5,13 +5,20 @@ from database import get_session
 from datetime import datetime
 
 class ExpensePage(QWidget):
-    def __init__(self, user):
+    def __init__(self, user, on_home_click):
         super().__init__()
         self.user = user
-        self.setup_ui()
+        self.on_home_click = on_home_click
         self.session = get_session()
+        self.setup_ui()
 
     def setup_ui(self):
+        self.setGeometry(100, 100, 600, 400)
+        self.setStyleSheet("""
+            background-color: #378805;
+            color: white;
+        """)
+
         layout = QVBoxLayout()
         header = QLabel(f"User {self.user.username}'s Add Expense Page")
         layout.addWidget(header)
@@ -59,12 +66,17 @@ class ExpensePage(QWidget):
         self.delete_expense_query.clicked.connect(self.delete_expense)
         layout.addWidget(self.delete_expense_query)
 
+
+        self.home_button = QPushButton('Return to Home')
+        self.home_button.clicked.connect(self.open_home)
+        layout.addWidget(self.home_button)
+
         self.setLayout(layout)
 
     def add_expense(self):
         # Fetch the account that the dropdown is on right now to create the transaction
         # ID has to be added by 1 because SQL tables are not zero-indexed, while QComboBoxes are
-        account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex() + 1)
+        account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
         new_transaction = Transaction(account_id=account_fetch.id, 
                                       amount=self.amount_input.text(), 
                                       category = self.category_input.text(), 
@@ -75,8 +87,12 @@ class ExpensePage(QWidget):
 
     def delete_expense(self):
         # ID has to be added by 1 because SQL tables are not zero-indexed, while QComboBoxes are
-        account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex() + 1)
+        account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
         transaction = account_fetch.select_transaction(self.session, self.id_input.text())
         if transaction.account_id == account_fetch.id:
             # Delete operation abstracted to Transaction class
             transaction.delete_transaction(self.session)
+
+    def open_home(self):
+        self.on_home_click(self.user)
+        self.close()

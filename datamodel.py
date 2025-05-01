@@ -13,7 +13,7 @@ class User(Base):
     
     def select_account(self, session, account_id):
         try:
-            account = session.query(Account).filter(Account.id == account_id).one()
+            account = session.query(Account).filter(Account.id == self.accounts[account_id].id).one()
             if (account.user_id == self.id):
                 return account
             else:
@@ -31,13 +31,36 @@ class Account(Base):
     user = relationship('User', back_populates='accounts')
     transactions = relationship('Transaction', back_populates='account')
     
+    def add_account(self, session):
+        session.add(self)
+        session.commit()
+
+    def delete_account(self, session):
+        session.delete(self)
+        session.commit()
+
+    # Needed because errors occur from SQLAlchemy's lazy loading method when trying to load 
+    # transactions from two different accounts using just account.transactions
+    def get_all_transactions(self, session):
+        try:
+            transaction = session.query(Transaction).filter(Transaction.account_id == self.id).all()
+            return transaction
+        except:
+            return None
+
     def select_transaction(self, session, transaction_id):
         try:
-            transaction = session.query(Transaction).filter(Transaction.id == transaction_id).one()
-            if transaction.account_id == self.id:
-                return transaction
-            else:
-                return None
+            transaction = session.query(Transaction).filter(Transaction.id == self.transactions[transaction_id].id,
+                                                            Transaction.account_id == self.id).one()
+            return transaction
+        except:
+            return None
+        
+    def select_transactions_by_category(self, session, category):
+        try:
+            transactions = session.query(Transaction).filter(Transaction.category == category,
+                                                             Transaction.account_id == self.id).all()
+            return transactions
         except:
             return None
 
