@@ -7,37 +7,40 @@ class HomeScreen(QWidget):
     def __init__(self, user, on_account_click, on_expense_click, on_financial_click):
         super().__init__()
         self.user = user
+        self.acc_list = list()
         self.on_account_click = on_account_click
         self.on_expense_click = on_expense_click
         self.on_financial_click = on_financial_click
-        self.setup_ui()
+        self.layout = QVBoxLayout()
         self.session = get_session()
+        self.setup_ui()
         
     def setup_ui(self):
-        layout = QVBoxLayout()
-        welcome = QLabel(f"Welcome {self.user.username}!")
-        layout.addWidget(welcome)
+        self.welcome = QLabel(f"Welcome {self.user.username}!")
+        self.layout.addWidget(self.welcome)
         
-        for account in self.user.accounts:
+        accounts = self.user.get_all_accounts(self.session)
+
+        for account in accounts:
             acc_label = QLabel(f"ID: {account.id} Name: {account.name} Balance: ${account.balance:.2f}")
-            layout.addWidget(acc_label)
-        
+            self.layout.addWidget(acc_label)
+            self.acc_list.append(acc_label)
 
         self.account_history = QPushButton("Account Page")
         self.account_history.clicked.connect(self.open_account)
-        layout.addWidget(self.account_history)
+        self.layout.addWidget(self.account_history)
 
         self.add_expense = QPushButton("Expenses Page")
         self.add_expense.clicked.connect(self.open_expenses)
-        layout.addWidget(self.add_expense)
+        self.layout.addWidget(self.add_expense)
 
         self.financial_history = QPushButton("Financial History")
         self.financial_history.clicked.connect(self.open_financial)
-        layout.addWidget(self.financial_history)
+        self.layout.addWidget(self.financial_history)
             
         
 
-        self.setLayout(layout)
+        self.setLayout(self.layout)
 
 
         
@@ -52,3 +55,20 @@ class HomeScreen(QWidget):
     def open_financial(self):
         self.on_financial_click(self.user)
         self.close()
+
+    def update_window(self):
+        self.layout.removeWidget(self.welcome)
+        for widget in self.acc_list:
+            self.layout.removeWidget(widget)
+        self.acc_list = list()
+        self.layout.removeWidget(self.account_history)
+        self.layout.removeWidget(self.add_expense)
+        self.layout.removeWidget(self.financial_history)
+        self.setup_ui()
+
+
+
+    def showEvent(self, event):
+        # This refreshes our combo boxes whenever we launch or relaunch this window so that the account pages update properly.
+        super().showEvent(event)
+        self.update_window()

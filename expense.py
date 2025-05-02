@@ -19,54 +19,53 @@ class ExpensePage(QWidget):
             color: white;
         """)
 
-        layout = QVBoxLayout()
+        self.layout = QVBoxLayout()
         header = QLabel(f"User {self.user.username}'s Add Expense Page")
-        layout.addWidget(header)
+        self.layout.addWidget(header)
 
         self.account_combo = QComboBox()
-        for account in self.user.accounts:
-            self.account_combo.addItem(account.name)
         self.account_combo.activated.connect(self.update_category_display)
-        layout.addWidget(self.account_combo)
+        # self.update_accounts_display()
+        self.layout.addWidget(self.account_combo)
 
         add_header = QLabel(f"Add an Expense")
-        layout.addWidget(add_header)
+        self.layout.addWidget(add_header)
         #Amount 
         self.amount_label = QLabel("Amount:")
         self.amount_input = QLineEdit()
-        layout.addWidget(self.amount_label)
-        layout.addWidget(self.amount_input)
+        self.layout.addWidget(self.amount_label)
+        self.layout.addWidget(self.amount_input)
 
         #Category
         self.category_label = QLabel("Category:")
         self.category_combo = QComboBox()
-        layout.addWidget(self.category_label)
-        layout.addWidget(self.category_combo)
+        self.layout.addWidget(self.category_label)
+        self.layout.addWidget(self.category_combo)
         self.update_category_display()
 
         #Description 
         self.description_label = QLabel("Description:")
         self.description_input = QLineEdit()
-        layout.addWidget(self.description_label)
-        layout.addWidget(self.description_input)
+        self.layout.addWidget(self.description_label)
+        self.layout.addWidget(self.description_input)
 
 
         self.add_expense_query = QPushButton("Add Expenses")
         self.add_expense_query.clicked.connect(self.add_expense)
-        layout.addWidget(self.add_expense_query)
+        self.layout.addWidget(self.add_expense_query)
 
         add_header = QLabel(f"Delete an Expense")
-        layout.addWidget(add_header)
+        self.layout.addWidget(add_header)
 
         #ID 
         self.id_label = QLabel("Transaction ID:")
         self.id_input = QLineEdit()
-        layout.addWidget(self.id_label)
-        layout.addWidget(self.id_input)
+        self.layout.addWidget(self.id_label)
+        self.layout.addWidget(self.id_input)
 
         self.delete_expense_query = QPushButton(f"Delete Expenses")
         self.delete_expense_query.clicked.connect(self.delete_expense)
-        layout.addWidget(self.delete_expense_query)
+        self.layout.addWidget(self.delete_expense_query)
 
 
 
@@ -74,28 +73,28 @@ class ExpensePage(QWidget):
         self.create_categories_label = QLabel("Category Name:")
         self.create_categories_input = QLineEdit()
 
-        layout.addWidget(self.create_categories_header)
-        layout.addWidget(self.create_categories_label)
-        layout.addWidget(self.create_categories_input)
+        self.layout.addWidget(self.create_categories_header)
+        self.layout.addWidget(self.create_categories_label)
+        self.layout.addWidget(self.create_categories_input)
 
 
         self.create_categories_button = QPushButton("Create Category")
         self.create_categories_button.clicked.connect(self.create_category)
-        layout.addWidget(self.create_categories_button)
+        self.layout.addWidget(self.create_categories_button)
 
         self.delete_categories_label = QLabel(f"Delete category (grabs from categories above):")
-        layout.addWidget(self.delete_categories_label)
+        self.layout.addWidget(self.delete_categories_label)
 
         self.delete_categories_button = QPushButton(f"Delete Category")
         self.delete_categories_button.clicked.connect(self.delete_category)
-        layout.addWidget(self.delete_categories_button)
+        self.layout.addWidget(self.delete_categories_button)
 
         self.home_button = QPushButton('Return to Home')
         self.home_button.clicked.connect(self.open_home)
-        layout.addWidget(self.home_button)
+        self.layout.addWidget(self.home_button)
 
 
-        self.setLayout(layout)
+        self.setLayout(self.layout)
 
     def add_expense(self):
         # Fetch the account that the dropdown is on right now to create the transaction
@@ -131,30 +130,38 @@ class ExpensePage(QWidget):
 
     def delete_category(self):
         try:
-            account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
-            category = account_fetch.select_category(self.session, self.category_combo.currentIndex())
-            category.delete_category(self.session)
+            # account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
+            # category = account_fetch.select_category(self.session, self.category_combo.currentIndex())
+            # category.delete_category(self.session)
+            print(self.category_combo.currentIndex())
         except:
             pass
         finally:
             self.update_category_display()
 
     def update_category_display(self):
+        category_names = list()
         account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
         categories = account_fetch.get_all_categories(self.session)
         self.category_combo.clear()
         for category in categories:
-            self.category_combo.insertItem(-1, f"ID {category.id}: {category.name}")
-
+            category_names.append(category.name)
+        self.category_combo.insertItems(0, category_names)
+        
     def update_accounts_display(self):
         self.account_combo.clear()
-        for account in self.user.accounts:
+        accounts = self.user.get_all_accounts(self.session)
+        for account in accounts:
             self.account_combo.addItem(account.name)
     
     def showEvent(self, event):
+        # This refreshes our combo boxes whenever we launch or relaunch this window so that the account pages update properly.
         super().showEvent(event)
-        self.update_accounts_display
-        self.update_category_display
+        self.update_accounts_display()
+        self.update_category_display()
+
+    # def clear_window(self):
+        
 
 
 

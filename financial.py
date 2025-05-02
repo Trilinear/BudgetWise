@@ -54,7 +54,7 @@ class FinancialHistory(QWidget):
         layout.addWidget(self.category_combo)
 
         self.show_expense_table = QPushButton(f"Show Expenses in Table")
-        self.show_expense_table.clicked.connect(self.fetch_transactions)
+        self.show_expense_table.clicked.connect(self.set_table)
         layout.addWidget(self.show_expense_table)
 
         self.table = QTableWidget()
@@ -76,7 +76,6 @@ class FinancialHistory(QWidget):
 
         layout.addWidget(self.figure_canvas)
 
-
         self.show_expense_graph = QPushButton(f"Show Expenses on Graph")
         self.show_expense_graph.clicked.connect(self.set_figure)
         layout.addWidget(self.show_expense_graph)
@@ -85,28 +84,15 @@ class FinancialHistory(QWidget):
         self.home_button.clicked.connect(self.open_home)
         layout.addWidget(self.home_button)
 
-
         self.setLayout(layout)
 
-    def update_category_combo(self):
-        account = self.user.accounts[self.account_combo.currentIndex()]
-        transactions = account.get_all_transactions(self.session)
-        self.category_combo.clear()
-        categories = set()
-        for transaction in transactions:
-            categories.add(transaction.category)
-        categories = list(categories)
-        categories.sort()
-        self.category_combo.insertItem(0, 'All Categories')
-        self.category_combo.insertItems(1, categories)
-
-
-    def fetch_transactions(self):
+    # Functions to display table and figure based on selected combos
+    def set_table(self):
         account = self.user.select_account(self.session, self.account_combo.currentIndex())
         if self.category_combo.currentIndex() == 0:
             transactions = account.transactions
         else:
-            transactions = account.select_transactions_by_category(self.session, self.category_combo.currentText())
+            transactions = account.select_transactions_by_category(self.session, self.category_combo.currentIndex() - 1)
 
         self.table.clearContents()
         self.table.setRowCount(0)
@@ -128,9 +114,9 @@ class FinancialHistory(QWidget):
 
         account = self.user.select_account(self.session, self.account_combo.currentIndex())
         if self.category_combo.currentIndex() == 0:
-            transactions = account.transactions
+            transactions = account.get_all_transactions(self.session)
         else:
-            transactions = account.select_transactions_by_category(self.session, self.category_combo.currentText())
+            transactions = account.select_transactions_by_category(self.session, self.category_combo.currentIndex() - 1)
 
         for transaction in transactions:
             date_list.append(transaction.date)
@@ -145,6 +131,32 @@ class FinancialHistory(QWidget):
             # self.figure_canvas.draw()
 
 
+    # Update logic for updating combos on launch, relaunch, or switched to new account combo index
+    def update_accounts_combo(self):
+        self.account_combo.clear()
+        accounts = self.user.get_all_accounts(self.session)
+        for account in accounts:
+            self.account_combo.addItem(account.name)
+
+    def update_category_combo(self):
+        account = self.user.select_account(self.session, self.account_combo.currentIndex())
+        categories = account.get_all_categories(self.session)
+        print(categories)
+        category_names = list()
+        for category in categories:
+            category_names.append(category.name)
+        self.category_combo.clear()
+        self.category_combo.insertItem(0, 'All Categories')
+        self.category_combo.insertItems(1, category_names)
+
+    def showEvent(self, event):
+        # This refreshes our combo boxes whenever we launch or relaunch this window so that the account pages update properly.
+        super().showEvent(event)
+        self.update_accounts_combo()
+        self.update_category_combo()
+
+
+    # Route to return back to home page
     def open_home(self):
         self.on_home_click(self.user)
         self.close()

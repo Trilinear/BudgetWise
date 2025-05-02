@@ -11,13 +11,22 @@ class User(Base):
     password = Column(String)
     accounts = relationship('Account', back_populates='user')
     
-    def select_account(self, session, account_id):
+    def select_account(self, session, account_index):
         try:
-            account = session.query(Account).filter(Account.id == self.accounts[account_id].id).one()
-            if (account.user_id == self.id):
-                return account
+            print(self.accounts)
+            accounts = session.query(Account).filter(Account.user_id == self.id).all()
+
+            if (accounts[account_index].user_id == self.id):
+                return accounts[account_index]
             else:
                 return None
+        except:
+            return None
+        
+    def get_all_accounts(self, session):
+        try:
+            accounts = session.query(Account).filter(Account.user_id == self.id).all()
+            return accounts
         except:
             return None
     
@@ -44,21 +53,23 @@ class Account(Base):
     # transactions from two different accounts using just account.transactions
     def get_all_transactions(self, session):
         try:
-            transaction = session.query(Transaction).filter(Transaction.account_id == self.id).all()
-            return transaction
+            transactions = session.query(Transaction).filter(Transaction.account_id == self.id).all()
+            return transactions
         except:
             return None
 
     def select_transaction(self, session, transaction_index):
         try:
-            transaction = session.query(Transaction).filter(Transaction.id == self.transactions[transaction_index].id,
-                                                            Transaction.account_id == self.id).one()
+            transactions = session.query(Transaction).filter(Transaction.account_id == self.id).all()
+            transaction = transactions[transaction_index]
             return transaction
         except:
             return None
         
-    def select_transactions_by_category(self, session, category):
+    def select_transactions_by_category(self, session, category_index):
         try:
+            categories = session.query(Category).filter(Category.account_id == self.id).all()
+            category = categories[category_index].name
             transactions = session.query(Transaction).filter(Transaction.category == category,
                                                              Transaction.account_id == self.id).all()
             return transactions
@@ -74,8 +85,8 @@ class Account(Base):
 
     def select_category(self, session, category_index):
         try:
-            category = session.query(Category).filter(Category.id == self.categories[category_index].id,
-                                                            Category.account_id == self.id).one()
+            categories = session.query(Category).filter(Category.account_id == self.id).all()
+            category = categories[category_index]
             return category
         except:
             return None

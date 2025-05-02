@@ -39,13 +39,12 @@ class AccountPage(QWidget):
         delete_header = QLabel(f"Delete an Account")
         layout.addWidget(delete_header)
 
-        self.id_label = QLabel("ID of account to be deleted:")
-        self.id_input = QLineEdit()
-        layout.addWidget(self.id_label)
-        layout.addWidget(self.id_input)
+        self.id_label = QLabel(f"Select account to be deleted:")
+        self.account_combo = QComboBox()
+        layout.addWidget(self.account_combo)
 
         self.add_account_button = QPushButton(f"Delete Account")
-        self.add_account_button.clicked.connect(self.create_account)
+        self.add_account_button.clicked.connect(self.remove_account)
         layout.addWidget(self.add_account_button)
 
         self.home_button = QPushButton('Return to Home')
@@ -55,7 +54,7 @@ class AccountPage(QWidget):
         self.setLayout(layout)
 
 
-
+    
     def create_account(self):
         new_account = Account(user_id=self.user.id, 
             name=self.name_input.text(),
@@ -63,10 +62,31 @@ class AccountPage(QWidget):
         )
         # Add operation abstracted to Account class
         new_account.add_account(self.session)
+        self.update_accounts_combo()
+        
 
     def remove_account(self):
-        self.user.select_account(self.session, self.id_input.text())
+        account = self.user.select_account(self.session, self.account_combo.currentIndex())
+        print(account.name)
+        print('hi')
+        account.delete_account(self.session)
+        accs = self.user.get_all_accounts(self.session)
+        # print(accs)
+        self.update_accounts_combo()
 
     def open_home(self):
         self.on_home_click(self.user)
         self.close()
+
+    def update_accounts_combo(self):
+        self.account_combo.clear()
+        accounts = self.user.get_all_accounts(self.session)
+        for account in accounts:
+            self.account_combo.addItem(account.name)
+        print(accounts)
+
+    def showEvent(self, event):
+        # This refreshes our combo boxes whenever we launch or relaunch this window so that the account pages update properly.
+        super().showEvent(event)
+        print('update')
+        self.update_accounts_combo()
