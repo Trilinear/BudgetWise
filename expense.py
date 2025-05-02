@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit, 
                             QPushButton, QVBoxLayout, QMessageBox, QComboBox)
-from datamodel import User, Account, Transaction
+from datamodel import User, Account, Transaction, Category
 from database import get_session
 from datetime import datetime
 
@@ -26,6 +26,7 @@ class ExpensePage(QWidget):
         self.account_combo = QComboBox()
         for account in self.user.accounts:
             self.account_combo.addItem(account.name)
+        self.account_combo.activated.connect(self.update_category_display)
         layout.addWidget(self.account_combo)
 
         add_header = QLabel(f"Add an Expense")
@@ -36,11 +37,12 @@ class ExpensePage(QWidget):
         layout.addWidget(self.amount_label)
         layout.addWidget(self.amount_input)
 
-        #Category 
+        #Category
         self.category_label = QLabel("Category:")
-        self.category_input = QLineEdit()
+        self.category_combo = QComboBox()
         layout.addWidget(self.category_label)
-        layout.addWidget(self.category_input)
+        layout.addWidget(self.category_combo)
+        self.update_category_display()
 
         #Description 
         self.description_label = QLabel("Description:")
@@ -67,9 +69,31 @@ class ExpensePage(QWidget):
         layout.addWidget(self.delete_expense_query)
 
 
+
+        self.create_categories_header = QLabel("Add new category:")
+        self.create_categories_label = QLabel("Category Name:")
+        self.create_categories_input = QLineEdit()
+
+        layout.addWidget(self.create_categories_header)
+        layout.addWidget(self.create_categories_label)
+        layout.addWidget(self.create_categories_input)
+
+
+        self.create_categories_button = QPushButton("Create Category")
+        self.create_categories_button.clicked.connect(self.create_category)
+        layout.addWidget(self.create_categories_button)
+
+        self.delete_categories_label = QLabel(f"Delete category (grabs from categories above):")
+        layout.addWidget(self.delete_categories_label)
+
+        self.delete_categories_button = QPushButton(f"Delete Category")
+        self.delete_categories_button.clicked.connect(self.delete_category)
+        layout.addWidget(self.delete_categories_button)
+
         self.home_button = QPushButton('Return to Home')
         self.home_button.clicked.connect(self.open_home)
         layout.addWidget(self.home_button)
+
 
         self.setLayout(layout)
 
@@ -79,7 +103,7 @@ class ExpensePage(QWidget):
         account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
         new_transaction = Transaction(account_id=account_fetch.id, 
                                       amount=self.amount_input.text(), 
-                                      category = self.category_input.text(), 
+                                      category = account_fetch.select_category(self.session, self.category_combo.currentIndex()).name, 
                                       description=self.description_input.text(),
                                       date=datetime.now())
         # Add operation abstracted to Transaction class
@@ -96,3 +120,43 @@ class ExpensePage(QWidget):
     def open_home(self):
         self.on_home_click(self.user)
         self.close()
+
+    def create_category(self):
+        account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
+        new_category = Category(name=self.create_categories_input.text(),
+                                 account_id=account_fetch.id)
+        new_category.add_category(self.session)
+        self.update_category_display()
+
+
+    def delete_category(self):
+        try:
+            account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
+            category = account_fetch.select_category(self.session, self.category_combo.currentIndex())
+            category.delete_category(self.session)
+        except:
+            pass
+        finally:
+            self.update_category_display()
+
+    def update_category_display(self):
+        account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
+        categories = account_fetch.get_all_categories(self.session)
+        self.category_combo.clear()
+        for category in categories:
+            self.category_combo.insertItem(-1, f"ID {category.id}: {category.name}")
+
+    def update_accounts_display(self):
+        self.account_combo.clear()
+        for account in self.user.accounts:
+            self.account_combo.addItem(account.name)
+    
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.update_accounts_display
+        self.update_category_display
+
+
+
+
+

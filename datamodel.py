@@ -30,6 +30,7 @@ class Account(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship('User', back_populates='accounts')
     transactions = relationship('Transaction', back_populates='account')
+    categories = relationship('Category', back_populates='account')
     
     def add_account(self, session):
         session.add(self)
@@ -48,9 +49,9 @@ class Account(Base):
         except:
             return None
 
-    def select_transaction(self, session, transaction_id):
+    def select_transaction(self, session, transaction_index):
         try:
-            transaction = session.query(Transaction).filter(Transaction.id == self.transactions[transaction_id].id,
+            transaction = session.query(Transaction).filter(Transaction.id == self.transactions[transaction_index].id,
                                                             Transaction.account_id == self.id).one()
             return transaction
         except:
@@ -63,16 +64,32 @@ class Account(Base):
             return transactions
         except:
             return None
+    
+    def get_all_categories(self, session):
+        try:
+            categories = session.query(Category).filter(Category.account_id == self.id).all()
+            return categories
+        except:
+            return None
+
+    def select_category(self, session, category_index):
+        try:
+            category = session.query(Category).filter(Category.id == self.categories[category_index].id,
+                                                            Category.account_id == self.id).one()
+            return category
+        except:
+            return None
 
 class Transaction(Base):
     __tablename__ = 'transactions'
     id = Column(Integer, primary_key=True)
     amount = Column(Float)
-    category = Column(String)
+    category = Column(String, ForeignKey('categories.name'))
     description = Column(String)
     account_id = Column(Integer, ForeignKey('accounts.id'))
     date = Column(DateTime)
     account = relationship('Account', back_populates='transactions')
+    category_relationship = relationship('Category', back_populates='transactions')
 
     def add_transaction(self, session):
         session.add(self)
@@ -81,3 +98,27 @@ class Transaction(Base):
     def delete_transaction(self, session):
         session.delete(self)
         session.commit()
+
+class Category(Base):
+    __tablename__ = 'categories'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    account_id = Column(Integer, ForeignKey('accounts.id'))
+    account = relationship('Account', back_populates='categories')
+    transactions = relationship('Transaction', back_populates='category_relationship')
+
+    def add_category(self, session):
+        try: 
+            check_if_exists = session.query(Category).filter(Category.name == self.name, Category.account_id == self.account_id).all()
+            if len(check_if_exists) != 0:
+                return None
+            else:
+                session.add(self)
+                session.commit()
+        except:
+            return None
+
+    def delete_category(self, session):
+        session.delete(self)
+        session.commit()
+
