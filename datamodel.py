@@ -11,6 +11,22 @@ class User(Base):
     password = Column(String)
     accounts = relationship('Account', back_populates='user')
     
+    def add_user(self, session):
+        try:
+            session.add(self)
+            session.commit()
+        except:
+            print('Error adding user to database')
+            session.rollback()
+
+    def delete_user(self, session):
+        try:
+            session.delete(self)
+            session.commit()
+        except:
+            print('Error deleting user from database')
+            session.rollback()
+
     def select_account(self, session, account_index):
         try:
             accounts = session.query(Account).filter(Account.user_id == self.id).all()
@@ -21,6 +37,7 @@ class User(Base):
                 return None
         except:
             print('Error selecting account')
+            self.session.rollback()
             return None
         
     def get_all_accounts(self, session):
@@ -29,6 +46,7 @@ class User(Base):
             return accounts
         except:
             print('Error getting accounts')
+            self.session.rollback()
             return None
     
 
@@ -48,6 +66,7 @@ class Account(Base):
             session.commit()
         except:
             print('Error adding account to database')
+            session.rollback()
 
     def delete_account(self, session):
         try:
@@ -55,6 +74,7 @@ class Account(Base):
             session.commit()
         except:
             print('Error deleting account from database')
+            session.rollback()
 
     def update_balance(self, session, new_balance):
         try:
@@ -63,6 +83,7 @@ class Account(Base):
             session.commit()
         except:
             print('Error updating balance')
+            session.rollback()
 
     # Needed because errors occur from SQLAlchemy's lazy loading method when trying to load 
     # transactions from two different accounts using just account.transactions
@@ -128,6 +149,7 @@ class Transaction(Base):
             session.commit()
         except:
             print('Error adding transaction')
+            session.rollback()
 
     def delete_transaction(self, session):
         try:
@@ -135,6 +157,7 @@ class Transaction(Base):
             session.commit()
         except:
             print('Error deleting transaction')
+            session.rollback()
 
 class Category(Base):
     __tablename__ = 'categories'
@@ -154,7 +177,7 @@ class Category(Base):
                 session.commit()
         except:
             print('Error adding transaction')
-            return None
+            session.rollback()
 
     def delete_category(self, session):
         try:
@@ -162,5 +185,5 @@ class Category(Base):
             session.commit()
         except:
             print('Error adding transaction')
-            return None
+            session.rollback()
 
