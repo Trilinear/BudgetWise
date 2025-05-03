@@ -4,12 +4,12 @@ from datamodel import User
 from database import get_session
 
 class HomeScreen(QWidget):
-    def __init__(self, user, on_account_click, on_expense_click, on_financial_click):
+    def __init__(self, user, on_account_click, on_transaction_click, on_financial_click):
         super().__init__()
         self.user = user
         self.acc_list = list()
         self.on_account_click = on_account_click
-        self.on_expense_click = on_expense_click
+        self.on_transaction_click = on_transaction_click
         self.on_financial_click = on_financial_click
         self.layout = QVBoxLayout()
         self.session = get_session()
@@ -30,9 +30,9 @@ class HomeScreen(QWidget):
         self.account_history.clicked.connect(self.open_account)
         self.layout.addWidget(self.account_history)
 
-        self.add_expense = QPushButton("Expenses Page")
-        self.add_expense.clicked.connect(self.open_expenses)
-        self.layout.addWidget(self.add_expense)
+        self.add_tranasction = QPushButton("Transactions Page")
+        self.add_tranasction.clicked.connect(self.open_transactions)
+        self.layout.addWidget(self.add_tranasction)
 
         self.financial_history = QPushButton("Financial History")
         self.financial_history.clicked.connect(self.open_financial)
@@ -48,8 +48,8 @@ class HomeScreen(QWidget):
         self.on_account_click(self.user)
         self.close()
 
-    def open_expenses(self):
-        self.on_expense_click(self.user)
+    def open_transactions(self):
+        self.on_transaction_click(self.user)
         self.close()
 
     def open_financial(self):
@@ -62,7 +62,7 @@ class HomeScreen(QWidget):
             self.layout.removeWidget(widget)
         self.acc_list = list()
         self.layout.removeWidget(self.account_history)
-        self.layout.removeWidget(self.add_expense)
+        self.layout.removeWidget(self.add_tranasction)
         self.layout.removeWidget(self.financial_history)
         self.setup_ui()
 

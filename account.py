@@ -67,11 +67,7 @@ class AccountPage(QWidget):
 
     def remove_account(self):
         account = self.user.select_account(self.session, self.account_combo.currentIndex())
-        print(account.name)
-        print('hi')
         account.delete_account(self.session)
-        accs = self.user.get_all_accounts(self.session)
-        # print(accs)
         self.update_accounts_combo()
 
     def open_home(self):
@@ -83,7 +79,6 @@ class AccountPage(QWidget):
         accounts = self.user.get_all_accounts(self.session)
         for account in accounts:
             self.account_combo.addItem(account.name)
-        print(accounts)
 
     def showEvent(self, event):
         # This refreshes our combo boxes whenever we launch or relaunch this window so that the account pages update properly.

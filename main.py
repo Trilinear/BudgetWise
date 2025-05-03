@@ -4,7 +4,7 @@ from login import LoginScreen
 from home import HomeScreen
 from database import init_db
 from register import RegisterScreen
-from expense import ExpensePage
+from transaction import TransactionPage
 from financial import FinancialHistory
 from account import AccountPage
 
@@ -64,7 +64,7 @@ class AppController:
     def show_expense_page(self, user):
         if self.current_window:
             self.current_window.close()
-        self.current_window = ExpensePage(user,
+        self.current_window = TransactionPage(user,
             on_home_click=self.show_home_page
         )
         self.current_window.show()

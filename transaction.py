@@ -4,7 +4,7 @@ from datamodel import User, Account, Transaction, Category
 from database import get_session
 from datetime import datetime
 
-class ExpensePage(QWidget):
+class TransactionPage(QWidget):
     def __init__(self, user, on_home_click):
         super().__init__()
         self.user = user
@@ -20,15 +20,14 @@ class ExpensePage(QWidget):
         """)
 
         self.layout = QVBoxLayout()
-        header = QLabel(f"User {self.user.username}'s Add Expense Page")
+        header = QLabel(f"User {self.user.username}'s Transaction Page")
         self.layout.addWidget(header)
 
         self.account_combo = QComboBox()
         self.account_combo.activated.connect(self.update_category_display)
-        # self.update_accounts_display()
         self.layout.addWidget(self.account_combo)
 
-        add_header = QLabel(f"Add an Expense")
+        add_header = QLabel(f"Add a Transaction")
         self.layout.addWidget(add_header)
         #Amount 
         self.amount_label = QLabel("Amount:")
@@ -39,9 +38,9 @@ class ExpensePage(QWidget):
         #Category
         self.category_label = QLabel("Category:")
         self.category_combo = QComboBox()
+        self.category_combo.activated.connect(self.update_transactions_display)
         self.layout.addWidget(self.category_label)
         self.layout.addWidget(self.category_combo)
-        self.update_category_display()
 
         #Description 
         self.description_label = QLabel("Description:")
@@ -50,26 +49,30 @@ class ExpensePage(QWidget):
         self.layout.addWidget(self.description_input)
 
 
-        self.add_expense_query = QPushButton("Add Expenses")
-        self.add_expense_query.clicked.connect(self.add_expense)
-        self.layout.addWidget(self.add_expense_query)
+        self.add_income_button = QPushButton("Add as Income")
+        self.add_income_button.clicked.connect(self.add_income)
+        self.layout.addWidget(self.add_income_button)
 
-        add_header = QLabel(f"Delete an Expense")
+        self.add_expense_button = QPushButton("Add as Expense")
+        self.add_expense_button.clicked.connect(self.add_expense)
+        self.layout.addWidget(self.add_expense_button)
+
+        add_header = QLabel(f"Delete a Transaction")
         self.layout.addWidget(add_header)
 
-        #ID 
-        self.id_label = QLabel("Transaction ID:")
-        self.id_input = QLineEdit()
-        self.layout.addWidget(self.id_label)
-        self.layout.addWidget(self.id_input)
+        # Transaction Combo
+        self.transaction_label = QLabel("Transactions to delete from:")
+        self.transaction_combo = QComboBox()
+        self.layout.addWidget(self.transaction_label)
+        self.layout.addWidget(self.transaction_combo)
 
-        self.delete_expense_query = QPushButton(f"Delete Expenses")
-        self.delete_expense_query.clicked.connect(self.delete_expense)
-        self.layout.addWidget(self.delete_expense_query)
+        self.delete_transaction_query = QPushButton(f"Delete Transaction")
+        self.delete_transaction_query.clicked.connect(self.delete_transaction)
+        self.layout.addWidget(self.delete_transaction_query)
 
 
 
-        self.create_categories_header = QLabel("Add new category:")
+        self.create_categories_header = QLabel("Add New Category:")
         self.create_categories_label = QLabel("Category Name:")
         self.create_categories_input = QLineEdit()
 
@@ -82,7 +85,7 @@ class ExpensePage(QWidget):
         self.create_categories_button.clicked.connect(self.create_category)
         self.layout.addWidget(self.create_categories_button)
 
-        self.delete_categories_label = QLabel(f"Delete category (grabs from categories above):")
+        self.delete_categories_label = QLabel(f"Delete Category (grabs from categories above):")
         self.layout.addWidget(self.delete_categories_label)
 
         self.delete_categories_button = QPushButton(f"Delete Category")
@@ -96,25 +99,47 @@ class ExpensePage(QWidget):
 
         self.setLayout(self.layout)
 
-    def add_expense(self):
+    def add_income(self):
         # Fetch the account that the dropdown is on right now to create the transaction
         # ID has to be added by 1 because SQL tables are not zero-indexed, while QComboBoxes are
         account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
         new_transaction = Transaction(account_id=account_fetch.id, 
-                                      amount=self.amount_input.text(), 
+                                      amount=float(self.amount_input.text()), 
                                       category = account_fetch.select_category(self.session, self.category_combo.currentIndex()).name, 
                                       description=self.description_input.text(),
                                       date=datetime.now())
         # Add operation abstracted to Transaction class
         new_transaction.add_transaction(self.session)
+        new_balance = account_fetch.balance + float(self.amount_input.text())
+        account_fetch.update_balance(self.session, new_balance)
 
-    def delete_expense(self):
+
+    def add_expense(self):
+        account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
+        new_transaction = Transaction(account_id=account_fetch.id, 
+                                      amount= -float(self.amount_input.text()), # Same as add_income but inverted amount so that balance is added as an expense
+                                      category = account_fetch.select_category(self.session, self.category_combo.currentIndex()).name, 
+                                      description=self.description_input.text(),
+                                      date=datetime.now())
+        # Add operation abstracted to Transaction class
+        new_transaction.add_transaction(self.session)
+        new_balance = account_fetch.balance - float(self.amount_input.text())
+        account_fetch.update_balance(self.session, new_balance)
+        self.update_transactions_display()
+
+
+    def delete_transaction(self):
         # ID has to be added by 1 because SQL tables are not zero-indexed, while QComboBoxes are
         account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
-        transaction = account_fetch.select_transaction(self.session, self.id_input.text())
+        transactions = account_fetch.select_transactions_by_category(self.session, self.category_combo.currentIndex())
+        transaction = transactions[self.transaction_combo.currentIndex()]
         if transaction.account_id == account_fetch.id:
             # Delete operation abstracted to Transaction class
             transaction.delete_transaction(self.session)
+        new_balance = account_fetch.balance - transaction.amount
+        account_fetch.update_balance(self.session, new_balance)
+        self.update_transactions_display()
+
 
     def open_home(self):
         self.on_home_click(self.user)
@@ -153,12 +178,23 @@ class ExpensePage(QWidget):
         accounts = self.user.get_all_accounts(self.session)
         for account in accounts:
             self.account_combo.addItem(account.name)
+
+    def update_transactions_display(self):
+        account = self.user.select_account(self.session, self.account_combo.currentIndex())
+        transactions = account.select_transactions_by_category(self.session, self.category_combo.currentIndex())
+        self.transaction_combo.clear()
+        for transaction in transactions:
+            self.transaction_combo.addItem(f'ID {transaction.id}: {transaction.amount}')
+        
+        
+        
     
     def showEvent(self, event):
         # This refreshes our combo boxes whenever we launch or relaunch this window so that the account pages update properly.
         super().showEvent(event)
         self.update_accounts_display()
         self.update_category_display()
+        self.update_transactions_display()
 
     # def clear_window(self):
         
