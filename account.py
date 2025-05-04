@@ -19,33 +19,42 @@ class AccountPage(QWidget):
         """)
 
         layout = QVBoxLayout()
-        header = QLabel(f"User {self.user.username}'s Account Page")
-        layout.addWidget(header)
+        self.header = QLabel(f"User {self.user.username}'s Account Page")
+        layout.addWidget(self.header)
 
-        add_header = QLabel(f"Add an Account")
-        layout.addWidget(add_header)
+        # Add Account Column
+        self.add_header = QLabel(f"Add an Account")
+        layout.addWidget(self.add_header)
 
-        #name 
         self.name_label = QLabel("Name of new account:")
         self.name_input = QLineEdit()
         layout.addWidget(self.name_label)
         layout.addWidget(self.name_input)
 
-
         self.add_account_button = QPushButton("Add Account")
         self.add_account_button.clicked.connect(self.create_account)
         layout.addWidget(self.add_account_button)
 
-        delete_header = QLabel(f"Delete an Account")
-        layout.addWidget(delete_header)
+        self.edit_delete_header = QLabel(f"Edit/Delete an Account")
+        layout.addWidget(self.edit_delete_header)
 
-        self.id_label = QLabel(f"Select account to be deleted:")
+        self.account_label = QLabel(f"Select account to be edited/deleted:")
         self.account_combo = QComboBox()
+        layout.addWidget(self.account_label)
         layout.addWidget(self.account_combo)
 
-        self.add_account_button = QPushButton(f"Delete Account")
-        self.add_account_button.clicked.connect(self.remove_account)
-        layout.addWidget(self.add_account_button)
+        self.edit_name_label = QLabel(f"New Name:")
+        self.edit_name = QLineEdit()
+        layout.addWidget(self.edit_name_label)
+        layout.addWidget(self.edit_name)
+
+        self.edit_account_button = QPushButton(f"Edit Account")
+        self.edit_account_button.clicked.connect(self.edit_account)
+        layout.addWidget(self.edit_account_button)
+
+        self.delete_account_button = QPushButton(f"Delete Account")
+        self.delete_account_button.clicked.connect(self.remove_account)
+        layout.addWidget(self.delete_account_button)
 
         self.home_button = QPushButton('Return to Home')
         self.home_button.clicked.connect(self.open_home)
@@ -72,6 +81,21 @@ class AccountPage(QWidget):
         finally:
             self.update_accounts_combo()
         
+    def edit_account(self):
+        try:
+            account_query = self.user.select_account(self.session, self.account_combo.currentIndex())
+            if self.edit_name.text() != '':
+                account_query.name = self.edit_name.text()
+            update_flag = account_query.update_name(self.session)
+            if update_flag == 0:
+                QMessageBox.information(self, "Success", "Account update was successful!")
+            else:
+                QMessageBox.critical(self, "Error", "An error occured during update!")
+        except:
+            QMessageBox.critical(self, "Error", "An unusual error occured!")
+        finally:
+            self.update_accounts_combo()
+
 
     def remove_account(self):
         try:

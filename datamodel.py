@@ -84,6 +84,18 @@ class Account(Base):
             session.rollback()
             return -1
 
+    def update_name(self, session):
+        try:
+             # Session() has no .update() function so we have to run an execute to change the balance
+            session.execute(update(Account).where(Account.id == self.id).values(name=self.name))
+            session.commit()
+            return 0
+        except:
+            print('Error updating name')
+            session.rollback()
+            return -1
+
+
     def update_balance(self, session, new_balance):
         try:
             # Session() has no .update() function so we have to run an execute to change the balance
@@ -172,6 +184,18 @@ class Transaction(Base):
             print('Error deleting transaction')
             session.rollback()
             return -1
+        
+    def update_transaction(self, session):
+        try:
+            session.execute(update(Transaction).where(Transaction.id == self.id).values(
+                amount=self.amount, category=self.category, description=self.description))
+            session.commit()
+            return 0
+        except:
+            print('Error updating transaction')
+            session.rollback()
+            return -1
+
 
 class Category(Base):
     __tablename__ = 'categories'
