@@ -11,6 +11,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from matplotlib.dates import date2num, DateFormatter
 import datetime
+from collections import defaultdict
 
 
 
@@ -173,8 +174,6 @@ class FinancialHistory(QWidget):
         self.table.resizeColumnsToContents()
 
     def set_figure(self):
-        date_list = []
-        amount_list = []
         self.subplot.clear()
         self.subplot.set_title("Expenses Over Time")
         self.subplot.set_xlabel("Date")
@@ -186,24 +185,27 @@ class FinancialHistory(QWidget):
         else:
             transactions = account.select_transactions_by_category(self.session, self.category_combo.currentIndex() - 1)
 
+        #Aggregate expenses by date
+        daily_expenses = defaultdict(float)
         for transaction in transactions:
-            # Only include negative amounts (expenses)
             if transaction.amount < 0:
-                date_list.append(transaction.date)
-                amount_list.append(abs(transaction.amount))
+                date = transaction.date.date()  
+                daily_expenses[date] += abs(transaction.amount)
 
-        if date_list:
-            # Convert dates to numbers for plotting
-            date_nums = date2num(date_list)
+        if daily_expenses:
+            #Sort by date
+            sorted_dates = sorted(daily_expenses.keys())
+            amount_list = [daily_expenses[date] for date in sorted_dates]
+
+            #Convert to matplotlib date format
+            date_nums = date2num(sorted_dates)
             self.subplot.plot(date_nums, amount_list, linestyle='-', marker='o', color='red', label='Spending')
 
-            # Format date axis
             self.subplot.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
             self.subplot.tick_params(axis='x', rotation=45)
 
             self.subplot.legend()
             self.figure.tight_layout()
-
             self.figure_canvas.draw_idle()
 
 
