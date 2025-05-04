@@ -1,17 +1,19 @@
 from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit, QComboBox,
                             QPushButton, QVBoxLayout, QMessageBox,
-                            QTableWidget, QTableWidgetItem, QSizePolicy)
+                            QTableWidget, QTableWidgetItem, QSizePolicy, QHBoxLayout)
 
 from datamodel import User, Account
 import sqlite3
 from database import get_session
-import matplotlib
-matplotlib.use('Qt5Agg')
+import matplotlib as plt
+plt.use('Qt5Agg')
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from matplotlib.dates import date2num, DateFormatter
 import datetime
 from collections import defaultdict
+from datamodel import Category
+import numpy as np
 
 
 
@@ -75,7 +77,7 @@ class FinancialHistory(QWidget):
         self.show_expense_table.clicked.connect(self.set_table)
         layout.addWidget(self.show_expense_table)
 
-
+        #Show transactions table
         self.table = QTableWidget()
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderItem(0, QTableWidgetItem('ID'))
@@ -89,7 +91,7 @@ class FinancialHistory(QWidget):
         self.table.verticalHeader().setVisible(False)
         layout.addWidget(self.table)
 
-        # Sort controls
+        #Sort controls
         self.sort_combo = QComboBox()
         self.sort_combo.addItems([
             "Sort by Category (A-Z)",
@@ -101,18 +103,29 @@ class FinancialHistory(QWidget):
         self.sort_button = QPushButton("Sort Table")
         self.sort_button.clicked.connect(self.sort_table)
         layout.addWidget(self.sort_button)
-
-        self.figure = Figure(figsize=(16,9), dpi=100)
-        self.subplot = self.figure.add_subplot(111)
-        self.subplot.set_title("Expenses Over Time")
-        self.subplot.set_xlabel("Date")
-        self.subplot.set_ylabel("Amount Spent")
+        
+        #Expense over time
+        self.figure = Figure(figsize=(8, 4), dpi=100)  
         self.figure_canvas = FigureCanvasQTAgg(self.figure)
-        self.line = self.subplot.plot_date([], [])[0]
-        layout.addWidget(self.figure_canvas)
+        self.subplot = self.figure.add_subplot(111)
+
+        #Categorical spending
+        self.category_figure = Figure(figsize=(8, 4), dpi=100)  
+        self.category_canvas = FigureCanvasQTAgg(self.category_figure)
+        self.category_subplot = self.category_figure.add_subplot(111)
+
+        #Container for side by side graphs
+        graphs_container = QWidget()
+        graphs_layout = QHBoxLayout()
+        graphs_layout.addWidget(self.figure_canvas)
+        graphs_layout.addWidget(self.category_canvas)
+        graphs_container.setLayout(graphs_layout)
+
+        layout.addWidget(graphs_container)
 
         self.show_expense_graph = QPushButton(f"Show Expenses on Graph")
         self.show_expense_graph.clicked.connect(self.set_figure)
+        self.show_expense_graph.clicked.connect(self.set_category_figure)
         layout.addWidget(self.show_expense_graph)
 
         self.home_button = QPushButton('Return to Home')
@@ -207,7 +220,43 @@ class FinancialHistory(QWidget):
             self.subplot.legend()
             self.figure.tight_layout()
             self.figure_canvas.draw_idle()
-
+    
+    def set_category_figure(self):
+        self.category_subplot.clear()  
+        
+        self.category_subplot.set_title("Spending by Category")
+        self.category_subplot.set_xlabel("Categories")
+        self.category_subplot.set_ylabel("Total Amount Spent ($)")
+        account = self.user.select_account(self.session, self.account_combo.currentIndex())
+        transactions = account.get_all_transactions(self.session)
+        
+        #Aggregate spending by category
+        category_spending = {}
+        for transaction in transactions:
+            if transaction.amount < 0:  
+                category = transaction.category
+                amount = abs(transaction.amount)
+                if category in category_spending:
+                    category_spending[category] += amount
+                else:
+                    category_spending[category] = amount
+        
+        if category_spending:
+            categories = list(category_spending.keys())
+            amounts = list(category_spending.values())
+            bars = self.category_subplot.bar(categories, amounts)
+            #Add value labels on top of bars
+            for bar in bars:
+                height = bar.get_height()
+                self.category_subplot.text(bar.get_x() + bar.get_width()/2., height,
+                                        f'${height:.2f}',
+                                        ha='center', va='bottom')
+            
+            #Formatting
+            self.category_subplot.tick_params(axis='x', rotation=45)
+            self.category_subplot.set_ylim(top=max(amounts)*1.2)  # Add 10% headroom
+            self.category_figure.tight_layout()
+            self.category_canvas.draw_idle()
 
     # Update logic for updating combos on launch, relaunch, or switched to new account combo index
     def update_accounts_combo(self):
@@ -231,7 +280,6 @@ class FinancialHistory(QWidget):
         super().showEvent(event)
         self.update_accounts_combo()
         self.update_category_combo()
-
 
     # Route to return back to home page
     def open_home(self):
