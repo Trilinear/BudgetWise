@@ -48,6 +48,10 @@ class TransactionPage(QWidget):
                 padding: 4px;
                 border-radius: 4px;
             }
+            QListWidget {
+                background-color: white;  /* White background */
+                color: black;           /* Dark gray text */
+            }
         """)
 
         self.layout = QGridLayout()
@@ -146,16 +150,17 @@ class TransactionPage(QWidget):
         self.create_categories_button.clicked.connect(self.create_category)
         self.layout.addWidget(self.create_categories_button, 7, 2)
 
-        self.delete_categories_label = QLabel("Delete Category:")
-        self.layout.addWidget(self.delete_categories_label, 8, 2)
+        self.delete_category_combo = QComboBox()
+        self.layout.addWidget(QLabel("Select Category to Delete:"), 8, 2)  
+        self.layout.addWidget(self.delete_category_combo, 9, 2)
 
         self.delete_categories_button = QPushButton("Delete Category")
         self.delete_categories_button.clicked.connect(self.delete_category)
-        self.layout.addWidget(self.delete_categories_button, 9, 2)
+        self.layout.addWidget(self.delete_categories_button, 10, 2)
 
         self.home_button = QPushButton("Return to Home")
         self.home_button.clicked.connect(self.open_home)
-        self.layout.addWidget(self.home_button, 10, 2)
+        self.layout.addWidget(self.home_button, 11, 2)
 
         self.setLayout(self.layout)
 
@@ -297,7 +302,7 @@ class TransactionPage(QWidget):
     def delete_category(self):
         try:
             account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
-            category = account_fetch.select_category(self.session, self.category_combo.currentIndex())
+            category = account_fetch.select_category(self.session, self.delete_category_combo.currentIndex())
             delete_flag = category.delete_category(self.session)
             if delete_flag == 0:
                 QMessageBox.information(self, "Success", "Category deletion was successful!")
@@ -321,6 +326,7 @@ class TransactionPage(QWidget):
         # Update combo boxes
         self.category_combo.clear()
         self.edit_category_combo.clear()
+        self.delete_category_combo.clear()
         
         # Update categories list widget
         self.categories_list.clear()
@@ -331,6 +337,7 @@ class TransactionPage(QWidget):
             
         self.category_combo.insertItems(0, category_names)
         self.edit_category_combo.insertItems(0, category_names)
+        self.delete_category_combo.insertItems(0, category_names)
         
     def update_accounts_display(self):
         self.account_combo.clear()
