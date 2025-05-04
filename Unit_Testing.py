@@ -185,5 +185,36 @@ class TestAccount(unittest.TestCase):
         self.assertTrue(self.session.query(Transaction).filter(Transaction.id == 12, Transaction.category == 'Expansion',
                                                                 Transaction.account_id == 2).scalar() == None)
 
+    def test_editAccount(self):
+        fetched_account = self.session.query(Account).filter(Account.id == 2).scalar()
+        self.assertTrue(fetched_account.name == 'Test Account')
+        fetched_account.name = 'New Name Account'
+        fetched_account.update_name(self.session)
+        
+        self.assertFalse(self.session.query(Account).filter(Account.id == 2).scalar().name == 'Test Account')
+        self.assertTrue(self.session.query(Account).filter(Account.id == 2).scalar().name == 'New Name Account')
+        
+    def test_editAccount(self):
+        fetched_account = self.session.query(Account).filter(Account.id == 2).scalar()
+        self.assertTrue(fetched_account.balance == 0.0)
+        new_balance = 7.27
+        fetched_account.update_balance(self.session, new_balance)
+        new_fetched_account = self.session.query(Account).filter(Account.id == 2).scalar()
+        self.assertTrue(new_fetched_account.balance == 7.27)
+
+    def test_editTransaction(self):
+        fetched_transaction = self.session.query(Transaction).filter(Transaction.id == 4).scalar()
+        self.assertTrue(fetched_transaction.amount == 4.82)
+        self.assertTrue(fetched_transaction.account_id == 2)
+        fetched_transaction.amount = 72.7
+        fetched_transaction.update_transaction(self.session)
+        new_fetched_transaction = self.session.query(Transaction).filter(Transaction.id == 4).scalar()
+        self.assertTrue(new_fetched_transaction.amount == 72.7)
+
+
+
+
+
+
 if __name__ == '__main__':
     unittest.main()
