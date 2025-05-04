@@ -73,9 +73,7 @@ class AppController:
     def show_financial_history(self, user):
         if self.current_window:
             self.current_window.close()
-        self.current_window = FinancialHistory(user,
-            on_home_click=self.show_home_page
-        )
+        self.current_window = FinancialHistory(user, on_home_click=self.show_home_page)
         self.current_window.show()
 
         

@@ -9,6 +9,9 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
+from matplotlib.dates import date2num, DateFormatter
+import datetime
+
 
 
 class FinancialHistory(QWidget):
@@ -22,8 +25,28 @@ class FinancialHistory(QWidget):
     def setup_ui(self):
         self.setGeometry(0, 0, 1600, 800)
         self.setStyleSheet("""
-            background-color: #378805;
-            color: white;
+            QWidget {
+                background-color: #378805;
+                color: white;
+            }
+            QPushButton {
+                background-color: #dcdcdc;
+                color: black;
+                border-radius: 5px;
+                padding: 6px;
+            }
+            QPushButton:hover {
+                background-color: #c0c0c0;
+            }
+            QTableWidget {
+                olor: black;
+                background-color:#378805;
+                border: none;
+            }
+            QComboBox {
+                color: black;
+                background-color: white;
+            }
         """)
 
         layout = QVBoxLayout()
@@ -51,6 +74,20 @@ class FinancialHistory(QWidget):
         self.show_expense_table.clicked.connect(self.set_table)
         layout.addWidget(self.show_expense_table)
 
+
+        self.table = QTableWidget()
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderItem(0, QTableWidgetItem('ID'))
+        self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Category'))
+        self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Amount'))
+        self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Date'))
+        self.table.setHorizontalHeaderItem(4, QTableWidgetItem('Description'))
+        self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.table.setMinimumHeight(250)
+        self.table.horizontalHeader().setStyleSheet("QHeaderView::section { background-color: #dddddd; color: black; }")
+        self.table.verticalHeader().setVisible(False)
+        layout.addWidget(self.table)
+
         # Sort controls
         self.sort_combo = QComboBox()
         self.sort_combo.addItems([
@@ -64,28 +101,13 @@ class FinancialHistory(QWidget):
         self.sort_button.clicked.connect(self.sort_table)
         layout.addWidget(self.sort_button)
 
-        self.table = QTableWidget()
-        self.table.setColumnCount(5)
-
-        self.table.setHorizontalHeaderItem(0, QTableWidgetItem('ID'))
-        self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Category'))
-        self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Amount'))
-        self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Date'))
-        self.table.setHorizontalHeaderItem(4, QTableWidgetItem('Description'))
-        self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.table.setMinimumHeight(250)
-        self.table.horizontalHeader().setStyleSheet("QHeaderView::section { background-color: #dddddd; color: black; }")
-        self.table.verticalHeader().setVisible(False)
-
-
-        layout.addWidget(self.table)
-
         self.figure = Figure(figsize=(16,9), dpi=100)
         self.subplot = self.figure.add_subplot(111)
-        self.subplot.set_title("Transactions over Time Period")
+        self.subplot.set_title("Expenses Over Time")
+        self.subplot.set_xlabel("Date")
+        self.subplot.set_ylabel("Amount Spent")
         self.figure_canvas = FigureCanvasQTAgg(self.figure)
         self.line = self.subplot.plot_date([], [])[0]
-
         layout.addWidget(self.figure_canvas)
 
         self.show_expense_graph = QPushButton(f"Show Expenses on Graph")
@@ -153,8 +175,10 @@ class FinancialHistory(QWidget):
     def set_figure(self):
         date_list = []
         amount_list = []
-        if self.line:
-            self.line.remove()
+        self.subplot.clear()
+        self.subplot.set_title("Expenses Over Time")
+        self.subplot.set_xlabel("Date")
+        self.subplot.set_ylabel("Amount Spent")
 
         account = self.user.select_account(self.session, self.account_combo.currentIndex())
         if self.category_combo.currentIndex() == 0:
@@ -163,16 +187,24 @@ class FinancialHistory(QWidget):
             transactions = account.select_transactions_by_category(self.session, self.category_combo.currentIndex() - 1)
 
         for transaction in transactions:
-            date_list.append(transaction.date)
-            amount_list.append(transaction.amount)
+            # Only include negative amounts (expenses)
+            if transaction.amount < 0:
+                date_list.append(transaction.date)
+                amount_list.append(transaction.amount)
 
-        self.line = self.subplot.plot_date([], [])[0]
-        self.line.set_xdata(date_list)
-        self.line.set_ydata(amount_list)
-        self.subplot.relim()  # Recalculate limits
-        self.subplot.autoscale_view()  # Autoscale the view
-        self.figure_canvas.draw_idle()  # Redraw the canvas smoothly
-            # self.figure_canvas.draw()
+        if date_list:
+            # Convert dates to numbers for plotting
+            date_nums = date2num(date_list)
+            self.subplot.plot(date_nums, amount_list, linestyle='-', marker='o', color='red', label='Spending')
+
+            # Format date axis
+            self.subplot.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
+            self.subplot.tick_params(axis='x', rotation=45)
+
+            self.subplot.legend()
+            self.figure.tight_layout()
+
+            self.figure_canvas.draw_idle()
 
 
     # Update logic for updating combos on launch, relaunch, or switched to new account combo index

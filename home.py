@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit,
                             QPushButton, QVBoxLayout, QMessageBox)
 from datamodel import User
 from database import get_session
+from PyQt5.QtCore import Qt
 
 class HomeScreen(QWidget):
     def __init__(self, user, on_account_click, on_transaction_click, on_financial_click):
@@ -18,10 +19,32 @@ class HomeScreen(QWidget):
     def setup_ui(self):
         self.setGeometry(100, 100, 600, 400)
         self.setStyleSheet("""
-            background-color: #378805;
-            color: white;
+            QWidget {
+                background-color: #378805;
+                color: white;
+                font-family: Arial;
+                font-size: 14px;
+            }
+            QLabel#titleLabel {
+                font-size: 24px;
+                font-weight: bold;
+            }
+            QPushButton {
+                background-color: #dcdcdc;
+                color: black;
+                border-radius: 5px;
+                padding: 8px 12px;
+                margin-top: 10px;
+            }
+            QPushButton:hover {
+                background-color: #c0c0c0;
+            }
         """)
-        self.welcome = QLabel(f"Welcome {self.user.username}!")
+
+        
+        self.welcome = QLabel(f"Welcome to BudgetWise {self.user.username}!")
+        self.welcome.setObjectName("titleLabel")
+        self.welcome.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.welcome)
         
         accounts = self.user.get_all_accounts(self.session)
@@ -42,9 +65,6 @@ class HomeScreen(QWidget):
         self.financial_history = QPushButton("Financial History")
         self.financial_history.clicked.connect(self.open_financial)
         self.layout.addWidget(self.financial_history)
-            
-        
-
         self.setLayout(self.layout)
 
 

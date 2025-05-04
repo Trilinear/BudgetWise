@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit, 
-                            QPushButton, QGridLayout, QMessageBox, QComboBox)
+                            QPushButton, QGridLayout, QMessageBox, QComboBox, QListWidget)
 from datamodel import User, Account, Transaction, Category
 from database import get_session
 from datetime import datetime
+from PyQt5.QtCore import Qt
 
 class TransactionPage(QWidget):
     def __init__(self, user, on_home_click):
@@ -13,109 +14,148 @@ class TransactionPage(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        self.setGeometry(100, 100, 600, 400)
-        # self.setStyleSheet("""
-        #     background-color: #378805;
-        #     color: white;
-        # """)
+        self.setGeometry(100, 100, 900, 600)
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #378805;
+                color: white;
+                font-family: Arial;
+                font-size: 14px;
+            }
+            QLabel#mainHeader {
+                font-size: 22px;
+                font-weight: bold;
+            }
+            QLabel.sectionHeader {
+                font-size: 16px;
+                font-weight: bold;
+                margin-top: 15px;
+                margin-bottom: 5px;
+            }
+            QPushButton {
+                background-color: #dcdcdc;
+                color: black;
+                border-radius: 5px;
+                padding: 8px 12px;
+                margin-top: 10px;
+            }
+            QPushButton:hover {
+                background-color: #c0c0c0;
+            }
+            QLineEdit, QComboBox {
+                background-color: white;
+                color: black;
+                padding: 4px;
+                border-radius: 4px;
+            }
+        """)
 
         self.layout = QGridLayout()
         self.layout.setHorizontalSpacing(50)
-        header = QLabel(f"User {self.user.username}'s Transaction Page")
-        self.layout.addWidget(header, 0, 0)
+        self.layout.setVerticalSpacing(10)
 
+        # --- Header ---
+        header = QLabel("Transactions")
+        header.setObjectName("mainHeader")
+        header.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(header, 0, 0, 1, 3)
+
+        # --- Account ComboBox ---
         self.account_combo = QComboBox()
         self.account_combo.activated.connect(self.update_category_display)
-        self.layout.addWidget(self.account_combo, 0, 1)
+        self.layout.addWidget(self.account_combo, 1, 0)
 
-        add_header = QLabel(f"Add a Transaction")
-        self.layout.addWidget(add_header, 1, 0)
-        #Amount 
+        # === Column 1: Add Transaction ===
+        add_header = QLabel("Add a Transaction")
+        add_header.setProperty("class", "sectionHeader")
+        self.layout.addWidget(add_header, 2, 0)
+
         self.amount_label = QLabel("Amount:")
         self.amount_input = QLineEdit()
-        self.layout.addWidget(self.amount_label, 2, 0)
-        self.layout.addWidget(self.amount_input, 3, 0)
+        self.layout.addWidget(self.amount_label, 3, 0)
+        self.layout.addWidget(self.amount_input, 4, 0)
 
-        #Category
         self.category_label = QLabel("Category:")
         self.category_combo = QComboBox()
         self.category_combo.activated.connect(self.update_transactions_display)
-        self.layout.addWidget(self.category_label, 4, 0)
-        self.layout.addWidget(self.category_combo, 5, 0)
+        self.layout.addWidget(self.category_label, 5, 0)
+        self.layout.addWidget(self.category_combo, 6, 0)
 
-        #Description 
         self.description_label = QLabel("Description:")
         self.description_input = QLineEdit()
-        self.layout.addWidget(self.description_label, 6, 0)
-        self.layout.addWidget(self.description_input, 7, 0)
-
+        self.layout.addWidget(self.description_label, 7, 0)
+        self.layout.addWidget(self.description_input, 8, 0)
 
         self.add_income_button = QPushButton("Add as Income")
         self.add_income_button.clicked.connect(self.add_income)
-        self.layout.addWidget(self.add_income_button, 8, 0)
+        self.layout.addWidget(self.add_income_button, 9, 0)
 
         self.add_expense_button = QPushButton("Add as Expense")
         self.add_expense_button.clicked.connect(self.add_expense)
-        self.layout.addWidget(self.add_expense_button, 9, 0)
+        self.layout.addWidget(self.add_expense_button, 10, 0)
 
+        # === Column 2: Edit/Delete Transaction ===
+        edit_header = QLabel("Edit Existing Transaction")
+        edit_header.setProperty("class", "sectionHeader")
+        self.layout.addWidget(edit_header, 2, 1)
 
-        # Edit/Delete Transactions Column
-        edit_header = QLabel(f"Edit Existing Transaction")
-        self.transaction_label = QLabel(f"Select Transaction to Edit:")
+        self.transaction_label = QLabel("Select Transaction to Edit:")
         self.transaction_combo = QComboBox()
-        self.delete_transaction_button = QPushButton(f"Delete Transaction")
-        self.delete_transaction_button.clicked.connect(self.delete_transaction)
+        self.layout.addWidget(self.transaction_label, 3, 1)
+        self.layout.addWidget(self.transaction_combo, 4, 1)
 
-        self.edit_amount_label = QLabel('Edit Amount')
+        self.delete_transaction_button = QPushButton("Delete Transaction")
+        self.delete_transaction_button.clicked.connect(self.delete_transaction)
+        self.layout.addWidget(self.delete_transaction_button, 5, 1)
+
+        self.edit_amount_label = QLabel("Edit Amount:")
         self.edit_amount = QLineEdit()
-        self.edit_description_label = QLabel('Edit Description')
+        self.layout.addWidget(self.edit_amount_label, 6, 1)
+        self.layout.addWidget(self.edit_amount, 7, 1)
+
+        self.edit_description_label = QLabel("Edit Description:")
         self.edit_description = QLineEdit()
-        self.edit_category_label = QLabel('Edit Category')
+        self.layout.addWidget(self.edit_description_label, 8, 1)
+        self.layout.addWidget(self.edit_description, 9, 1)
+
+        self.edit_category_label = QLabel("Change Category:")
         self.edit_category_combo = QComboBox()
+        self.layout.addWidget(self.edit_category_label, 10, 1)
+        self.layout.addWidget(self.edit_category_combo, 11, 1)
 
         self.edit_transaction_button = QPushButton("Change Transaction")
         self.edit_transaction_button.clicked.connect(self.update_transaction)
+        self.layout.addWidget(self.edit_transaction_button, 12, 1)
 
-        self.layout.addWidget(edit_header, 1, 1)
-        self.layout.addWidget(self.transaction_label, 2, 1)
-        self.layout.addWidget(self.transaction_combo, 3, 1)
-        self.layout.addWidget(self.delete_transaction_button, 4, 1)
+        # === Column 3: Categories ==
+        self.create_categories_header = QLabel("Add New Category")
+        self.create_categories_header.setProperty("class", "sectionHeader")
+        self.layout.addWidget(self.create_categories_header, 2, 2)
 
-        self.layout.addWidget(self.edit_amount_label, 5, 1)
-        self.layout.addWidget(self.edit_amount, 6, 1)
-        self.layout.addWidget(self.edit_description_label, 7, 1)
-        self.layout.addWidget(self.edit_description, 8, 1)
-        self.layout.addWidget(self.edit_category_label, 9, 1)
-        self.layout.addWidget(self.edit_category_combo, 10, 1)
+        self.categories = QLabel("Existing Categories")
+        self.layout.addWidget(self.categories, 3, 2)
+        self.categories_list = QListWidget()
+        self.layout.addWidget(self.categories_list, 4, 2)
 
-        self.layout.addWidget(self.edit_transaction_button, 11, 1)
-
-
-        # Categories Column
-        self.create_categories_header = QLabel("Add New Category:")
         self.create_categories_label = QLabel("Category Name:")
         self.create_categories_input = QLineEdit()
-
-        self.layout.addWidget(self.create_categories_header, 1, 2)
-        self.layout.addWidget(self.create_categories_label, 2, 2)
-        self.layout.addWidget(self.create_categories_input, 3, 2)
-
+        self.layout.addWidget(self.create_categories_label, 5, 2)
+        self.layout.addWidget(self.create_categories_input, 6, 2)
 
         self.create_categories_button = QPushButton("Create Category")
         self.create_categories_button.clicked.connect(self.create_category)
-        self.layout.addWidget(self.create_categories_button, 4, 2)
+        self.layout.addWidget(self.create_categories_button, 7, 2)
 
-        self.delete_categories_label = QLabel(f"Delete Category (grabs from categories above):")
-        self.layout.addWidget(self.delete_categories_label, 5, 2)
+        self.delete_categories_label = QLabel("Delete Category:")
+        self.layout.addWidget(self.delete_categories_label, 8, 2)
 
-        self.delete_categories_button = QPushButton(f"Delete Category")
+        self.delete_categories_button = QPushButton("Delete Category")
         self.delete_categories_button.clicked.connect(self.delete_category)
-        self.layout.addWidget(self.delete_categories_button, 6, 2)
+        self.layout.addWidget(self.delete_categories_button, 9, 2)
 
-        self.home_button = QPushButton('Return to Home')
+        self.home_button = QPushButton("Return to Home")
         self.home_button.clicked.connect(self.open_home)
         self.layout.addWidget(self.home_button, 10, 2)
-
 
         self.setLayout(self.layout)
 
@@ -277,10 +317,18 @@ class TransactionPage(QWidget):
         category_names = list()
         account_fetch = self.user.select_account(self.session, self.account_combo.currentIndex())
         categories = account_fetch.get_all_categories(self.session)
+        
+        # Update combo boxes
         self.category_combo.clear()
         self.edit_category_combo.clear()
+        
+        # Update categories list widget
+        self.categories_list.clear()
+        
         for category in categories:
             category_names.append(category.name)
+            self.categories_list.addItem(category.name)
+            
         self.category_combo.insertItems(0, category_names)
         self.edit_category_combo.insertItems(0, category_names)
         
@@ -307,7 +355,6 @@ class TransactionPage(QWidget):
         self.update_category_display()
         self.update_transactions_display()
 
-    # def clear_window(self):
         
 
 
