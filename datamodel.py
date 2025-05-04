@@ -10,7 +10,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True)
     password = Column(String)
-    accounts = relationship('Account', back_populates='user')
+    accounts = relationship('Account', back_populates='user', cascade='all, delete')
     def add_user(self, session):
         try:
             session.add(self)
@@ -61,8 +61,8 @@ class Account(Base):
     balance = Column(Float, default=0.0)
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship('User', back_populates='accounts')
-    transactions = relationship('Transaction', back_populates='account')
-    categories = relationship('Category', back_populates='account')
+    transactions = relationship('Transaction', back_populates='account', cascade='all, delete')
+    categories = relationship('Category', back_populates='account', cascade='all, delete')
     
     def add_account(self, session):
         try:
@@ -179,7 +179,7 @@ class Category(Base):
     name = Column(String)
     account_id = Column(Integer, ForeignKey('accounts.id'))
     account = relationship('Account', back_populates='categories')
-    transactions = relationship('Transaction', back_populates='category_relationship')
+    transactions = relationship('Transaction', back_populates='category_relationship', cascade='all, delete')
 
     def add_category(self, session):
         try: 

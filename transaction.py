@@ -201,6 +201,11 @@ class TransactionPage(QWidget):
                 QMessageBox.information(self, "Success", "Category deletion was successful!")
             else:
                 QMessageBox.critical(self, "Error", "An error occured during deletion!")
+            new_balance = 0.0
+            transactions = account_fetch.get_all_transactions(self.session)
+            for transaction in transactions:
+                new_balance = new_balance + transaction.amount
+            account_fetch.update_balance(self.session, new_balance)
         except:
             QMessageBox.critical(self, "Error", "An unusual error has occured!")
         finally:
