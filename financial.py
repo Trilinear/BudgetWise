@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit, QComboBox,
                             QPushButton, QVBoxLayout, QMessageBox,
-                            QTableWidget, QTableWidgetItem)
+                            QTableWidget, QTableWidgetItem, QSizePolicy)
 
 from datamodel import User, Account
 import sqlite3
@@ -20,7 +20,7 @@ class FinancialHistory(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        self.setGeometry(100, 100, 900, 600)
+        self.setGeometry(0, 0, 1600, 800)
         self.setStyleSheet("""
             background-color: #378805;
             color: white;
@@ -51,6 +51,19 @@ class FinancialHistory(QWidget):
         self.show_expense_table.clicked.connect(self.set_table)
         layout.addWidget(self.show_expense_table)
 
+        # Sort controls
+        self.sort_combo = QComboBox()
+        self.sort_combo.addItems([
+            "Sort by Category (A-Z)",
+            "Sort by Amount (Ascending)",
+            "Sort by Amount (Descending)"
+        ])
+        layout.addWidget(self.sort_combo)
+
+        self.sort_button = QPushButton("Sort Table")
+        self.sort_button.clicked.connect(self.sort_table)
+        layout.addWidget(self.sort_button)
+
         self.table = QTableWidget()
         self.table.setColumnCount(5)
 
@@ -59,6 +72,11 @@ class FinancialHistory(QWidget):
         self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Amount'))
         self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Date'))
         self.table.setHorizontalHeaderItem(4, QTableWidgetItem('Description'))
+        self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.table.setMinimumHeight(250)
+        self.table.horizontalHeader().setStyleSheet("QHeaderView::section { background-color: #dddddd; color: black; }")
+        self.table.verticalHeader().setVisible(False)
+
 
         layout.addWidget(self.table)
 
@@ -98,6 +116,38 @@ class FinancialHistory(QWidget):
             self.table.setItem(rowNum, 2, QTableWidgetItem(str(transactions[rowNum].amount)))
             self.table.setItem(rowNum, 3, QTableWidgetItem(str(transactions[rowNum].date)))
             self.table.setItem(rowNum, 4, QTableWidgetItem(transactions[rowNum].description))
+        self.table.resizeColumnsToContents()
+
+    def sort_table(self):
+        row_count = self.table.rowCount()
+        if row_count == 0:
+            return
+
+        data = []
+        for row in range(row_count):
+            row_data = [
+                self.table.item(row, 0).text(),  # ID
+                self.table.item(row, 1).text(),  # Category
+                float(self.table.item(row, 2).text()),  # Amount (as float)
+                self.table.item(row, 3).text(),  # Date
+                self.table.item(row, 4).text()   # Description
+            ]
+            data.append(row_data)
+
+        sort_index = self.sort_combo.currentIndex()
+        if sort_index == 0:
+            data.sort(key=lambda x: x[1])  # Category (A-Z)
+        elif sort_index == 1:
+            data.sort(key=lambda x: x[2])  # Amount ascending
+        elif sort_index == 2:
+            data.sort(key=lambda x: x[2], reverse=True)  # Amount descending
+
+        self.table.setRowCount(0)
+        for rowNum, rowData in enumerate(data):
+            self.table.insertRow(rowNum)
+            for colNum, value in enumerate(rowData):
+                self.table.setItem(rowNum, colNum, QTableWidgetItem(str(value)))
+
         self.table.resizeColumnsToContents()
 
     def set_figure(self):

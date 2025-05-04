@@ -8,6 +8,7 @@ from transaction import TransactionPage
 from financial import FinancialHistory
 from account import AccountPage
 
+
 class AppController:
     def __init__(self):
         self.session = init_db()
