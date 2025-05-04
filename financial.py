@@ -190,7 +190,7 @@ class FinancialHistory(QWidget):
             # Only include negative amounts (expenses)
             if transaction.amount < 0:
                 date_list.append(transaction.date)
-                amount_list.append(transaction.amount)
+                amount_list.append(abs(transaction.amount))
 
         if date_list:
             # Convert dates to numbers for plotting
