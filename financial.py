@@ -40,7 +40,7 @@ class FinancialHistory(QWidget):
                 background-color: #c0c0c0;
             }
             QTableWidget {
-                olor: black;
+                color: black;
                 background-color:#378805;
                 border: none;
             }

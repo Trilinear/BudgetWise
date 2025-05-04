@@ -115,9 +115,9 @@ class AccountPage(QWidget):
             if add_flag == 0:
                 QMessageBox.information(self, "Success", "Account creation was successful!")
             else:
-                QMessageBox.critical(self, "Error", "An error occured during creation!")
+                QMessageBox.critical(self, "Error", "An error occurred during creation!")
         except:
-            QMessageBox.critical(self, "Error", "An unusual error occured!")
+            QMessageBox.critical(self, "Error", "An unusual error occurred!")
         finally:
             self.update_accounts_combo()
         
@@ -130,9 +130,9 @@ class AccountPage(QWidget):
             if update_flag == 0:
                 QMessageBox.information(self, "Success", "Account update was successful!")
             else:
-                QMessageBox.critical(self, "Error", "An error occured during update!")
+                QMessageBox.critical(self, "Error", "An error occurred during update!")
         except:
-            QMessageBox.critical(self, "Error", "An unusual error occured!")
+            QMessageBox.critical(self, "Error", "An unusual error occurred!")
         finally:
             self.update_accounts_combo()
 
@@ -144,9 +144,9 @@ class AccountPage(QWidget):
             if delete_flag == 0:
                 QMessageBox.information(self, "Success", "Account delete was successful!")
             else:
-                QMessageBox.critical(self, "Error", "An error occured during deletion!")
+                QMessageBox.critical(self, "Error", "An error occurred during deletion!")
         except:
-            QMessageBox.critical(self, "Error", "An unusual error occured!")
+            QMessageBox.critical(self, "Error", "An unusual error occurred!")
         finally:
             self.update_accounts_combo()
 

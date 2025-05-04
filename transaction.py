@@ -195,11 +195,11 @@ class TransactionPage(QWidget):
             if add_flag == 0:
                 QMessageBox.information(self, "Success", "Transaction creation was successful!")
             else:
-                QMessageBox.critical(self, "Error", "An error occured during creation!")
+                QMessageBox.critical(self, "Error", "An error occurred during creation!")
         except ValueError:
             QMessageBox.critical(self, "Error", "Amount must be a number!")
         except:
-            QMessageBox.critical(self, "Error", "An unusual error occured!")
+            QMessageBox.critical(self, "Error", "An unusual error occurred!")
         finally:
             self.update_transactions_display()
 
@@ -225,11 +225,11 @@ class TransactionPage(QWidget):
             if add_flag == 0:
                 QMessageBox.information(self, "Success", "Transaction creation was successful!")
             else:
-                QMessageBox.critical(self, "Error", "An error occured during creation!")
+                QMessageBox.critical(self, "Error", "An error occurred during creation!")
         except ValueError:
             QMessageBox.critical(self, "Error", "Amount must be a number!")
         except:
-            QMessageBox.critical(self, "Error", "An unusual error occured!")
+            QMessageBox.critical(self, "Error", "An unusual error occurred!")
         finally:
             self.update_transactions_display()
 
@@ -261,7 +261,7 @@ class TransactionPage(QWidget):
             else:
                 # Revert net_change back to 0.0 if an error occurs so we don't put a bad update
                 net_change = 0.0
-                QMessageBox.critical(self, "Error", "An error occured during update!")
+                QMessageBox.critical(self, "Error", "An error occurred during update!")
             
             # Update the balance after everything is done
             if net_change != 0.0:
@@ -271,7 +271,7 @@ class TransactionPage(QWidget):
         except ValueError:
             QMessageBox.critical(self, "Error", "Amount must be a number!")
         except:
-            QMessageBox.critical(self, "Error", "An unusual error occured!")
+            QMessageBox.critical(self, "Error", "An unusual error occurred!")
         finally:
             self.update_category_display()
             self.update_transactions_display()
@@ -289,12 +289,12 @@ class TransactionPage(QWidget):
                 if delete_flag == 0:
                     QMessageBox.information(self, "Success", "Transaction deletion was successful!")
                 else:
-                    QMessageBox.critical(self, "Error", "An error occured during deletion!")
+                    QMessageBox.critical(self, "Error", "An error occurred during deletion!")
                 self.update_transactions_display()
             new_balance = account_fetch.balance - transaction.amount
             account_fetch.update_balance(self.session, new_balance)
         except:
-            QMessageBox.critical(self, "Error", "An unusual error occured!")
+            QMessageBox.critical(self, "Error", "An unusual error occurred!")
         finally:
             self.update_transactions_display()
 
@@ -312,9 +312,9 @@ class TransactionPage(QWidget):
             if add_flag == 0:
                 QMessageBox.information(self, "Success", "Transaction creation was successful!")
             else:
-                QMessageBox.critical(self, "Error", "An error occured during creation!")
+                QMessageBox.critical(self, "Error", "An error occurred during creation!")
         except:
-            QMessageBox.critical(self, "Error", "An unusual error occured!")
+            QMessageBox.critical(self, "Error", "An unusual error occurred!")
         finally:
             self.update_category_display()
 
@@ -327,14 +327,14 @@ class TransactionPage(QWidget):
             if delete_flag == 0:
                 QMessageBox.information(self, "Success", "Category deletion was successful!")
             else:
-                QMessageBox.critical(self, "Error", "An error occured during deletion!")
+                QMessageBox.critical(self, "Error", "An error occurred during deletion!")
             new_balance = 0.0
             transactions = account_fetch.get_all_transactions(self.session)
             for transaction in transactions:
                 new_balance = new_balance + transaction.amount
             account_fetch.update_balance(self.session, new_balance)
         except:
-            QMessageBox.critical(self, "Error", "An unusual error has occured!")
+            QMessageBox.critical(self, "Error", "An unusual error has occurred!")
         finally:
             self.update_category_display()
 
