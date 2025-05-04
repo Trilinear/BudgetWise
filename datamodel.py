@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, upd
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
+import os
 
 class User(Base):
     __tablename__ = 'users'
@@ -10,22 +11,25 @@ class User(Base):
     username = Column(String, unique=True)
     password = Column(String)
     accounts = relationship('Account', back_populates='user')
-    
     def add_user(self, session):
         try:
             session.add(self)
             session.commit()
+            return 0
         except:
             print('Error adding user to database')
             session.rollback()
+            return -1
 
     def delete_user(self, session):
         try:
             session.delete(self)
             session.commit()
+            return 0
         except:
             print('Error deleting user from database')
             session.rollback()
+            return -1
 
     def select_account(self, session, account_index):
         try:
@@ -64,26 +68,32 @@ class Account(Base):
         try:
             session.add(self)
             session.commit()
+            return 0
         except:
             print('Error adding account to database')
             session.rollback()
+            return -1
 
     def delete_account(self, session):
         try:
             session.delete(self)
             session.commit()
+            return 0
         except:
             print('Error deleting account from database')
             session.rollback()
+            return -1
 
     def update_balance(self, session, new_balance):
         try:
             # Session() has no .update() function so we have to run an execute to change the balance
             session.execute(update(Account).where(Account.id == self.id).values(balance=new_balance))
             session.commit()
+            return 0
         except:
             print('Error updating balance')
             session.rollback()
+            return -1
 
     # Needed because errors occur from SQLAlchemy's lazy loading method when trying to load 
     # transactions from two different accounts using just account.transactions
@@ -147,17 +157,21 @@ class Transaction(Base):
         try:
             session.add(self)
             session.commit()
+            return 0
         except:
             print('Error adding transaction')
             session.rollback()
+            return -1
 
     def delete_transaction(self, session):
         try:
             session.delete(self)
             session.commit()
+            return 0
         except:
             print('Error deleting transaction')
             session.rollback()
+            return -1
 
 class Category(Base):
     __tablename__ = 'categories'
@@ -171,19 +185,23 @@ class Category(Base):
         try: 
             check_if_exists = session.query(Category).filter(Category.name == self.name, Category.account_id == self.account_id).all()
             if len(check_if_exists) != 0:
-                return None
+                return -1
             else:
                 session.add(self)
                 session.commit()
+                return 0
         except:
             print('Error adding transaction')
             session.rollback()
+            return -1
 
     def delete_category(self, session):
         try:
             session.delete(self)
             session.commit()
+            return 0
         except:
             print('Error adding transaction')
             session.rollback()
+            return -1
 

@@ -16,6 +16,11 @@ class HomeScreen(QWidget):
         self.setup_ui()
         
     def setup_ui(self):
+        self.setGeometry(100, 100, 600, 400)
+        self.setStyleSheet("""
+            background-color: #378805;
+            color: white;
+        """)
         self.welcome = QLabel(f"Welcome {self.user.username}!")
         self.layout.addWidget(self.welcome)
         

@@ -16,8 +16,8 @@ class FinancialHistory(QWidget):
         super().__init__()
         self.user = user
         self.on_home_click = on_home_click
-        self.setup_ui()
         self.session = get_session()
+        self.setup_ui()
 
     def setup_ui(self):
         self.setGeometry(100, 100, 900, 600)
@@ -42,13 +42,7 @@ class FinancialHistory(QWidget):
         self.category_header = QLabel(f"Existing Transaction Categories for Account:")
         self.category_combo = QComboBox()
         # This is for when you initially open the data, this will just insert the categories for the first account
-        initSet = set()
-        for transactions in self.user.accounts[0].transactions:
-            initSet.add(transactions.category)
-        initList = list(initSet)
-        initList.sort()
-        self.category_combo.insertItem(0, 'All Categories')
-        self.category_combo.insertItems(1, initList)
+        self.update_category_combo()
 
         layout.addWidget(self.category_header)
         layout.addWidget(self.category_combo)
@@ -141,7 +135,6 @@ class FinancialHistory(QWidget):
     def update_category_combo(self):
         account = self.user.select_account(self.session, self.account_combo.currentIndex())
         categories = account.get_all_categories(self.session)
-        print(categories)
         category_names = list()
         for category in categories:
             category_names.append(category.name)

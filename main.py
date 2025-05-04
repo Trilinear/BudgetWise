@@ -38,7 +38,7 @@ class AppController:
             self.current_window.close()
         self.current_window = HomeScreen(user=user,
             on_account_click=self.show_account_page,
-            on_expense_click=self.show_expense_page,
+            on_transaction_click=self.show_transaction_page,
             on_financial_click=self.show_financial_history
         )
         self.current_window.show()
@@ -48,7 +48,7 @@ class AppController:
             self.current_window.close()
         self.current_window = HomeScreen(user=user,
             on_account_click=self.show_account_page,
-            on_expense_click=self.show_expense_page,
+            on_transaction_click=self.show_transaction_page,
             on_financial_click=self.show_financial_history
         )
         self.current_window.show()
@@ -61,7 +61,7 @@ class AppController:
         )
         self.current_window.show()
 
-    def show_expense_page(self, user):
+    def show_transaction_page(self, user):
         if self.current_window:
             self.current_window.close()
         self.current_window = TransactionPage(user,
