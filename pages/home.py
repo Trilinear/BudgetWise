@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit, 
                             QPushButton, QVBoxLayout, QMessageBox)
-from datamodel import User
-from database import get_session
+from controller.datamodel import User
+from controller.database import get_session
 from PyQt5.QtCore import Qt
 
 class HomeScreen(QWidget):

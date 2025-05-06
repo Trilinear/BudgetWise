@@ -1,8 +1,8 @@
 import unittest
 import os
 import pandas as pd
-from database import init_db_unit_test
-from datamodel import User, Account, Transaction, Category
+from controller.database import init_db_unit_test
+from controller.datamodel import User, Account, Transaction, Category
 from datetime import datetime
 
 

@@ -2,9 +2,9 @@ from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit, QComboBox,
                             QPushButton, QVBoxLayout, QMessageBox,
                             QTableWidget, QTableWidgetItem, QSizePolicy, QHBoxLayout)
 
-from datamodel import User, Account
+from controller.datamodel import User, Account, Category
 import sqlite3
-from database import get_session
+from controller.database import get_session
 import matplotlib as plt
 plt.use('Qt5Agg')
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
@@ -12,8 +12,6 @@ from matplotlib.figure import Figure
 from matplotlib.dates import date2num, DateFormatter
 import datetime
 from collections import defaultdict
-from datamodel import Category
-import numpy as np
 
 
 

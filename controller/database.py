@@ -9,7 +9,7 @@ Session = sessionmaker(bind=engine)
 Testing_Session = sessionmaker(bind=testing_engine)
 
 def init_db():
-    from datamodel import Base
+    from controller.datamodel import Base
     Base.metadata.create_all(bind=engine)
     return Session()
 
@@ -17,7 +17,7 @@ def get_session():
     return Session()
 
 def init_db_unit_test():
-    from datamodel import Base
+    from controller.datamodel import Base
     Base.metadata.create_all(bind=testing_engine)
     return Testing_Session()
 

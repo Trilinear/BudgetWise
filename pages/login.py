@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit, 
                             QPushButton, QVBoxLayout, QMessageBox)
 from PyQt5.QtGui import QFont
-from database import get_session
-from datamodel import User
+from controller.database import get_session
+from controller.datamodel import User
 
 class LoginScreen(QWidget):
     def __init__(self, on_login_success, on_register):

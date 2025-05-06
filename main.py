@@ -1,12 +1,12 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from login import LoginScreen
-from home import HomeScreen
-from database import init_db
-from register import RegisterScreen
-from transaction import TransactionPage
-from financial import FinancialHistory
-from account import AccountPage
+from pages.login import LoginScreen
+from pages.home import HomeScreen
+from controller.database import init_db
+from pages.register import RegisterScreen
+from pages.transaction import TransactionPage
+from pages.financial import FinancialHistory
+from pages.account import AccountPage
 
 
 class AppController:

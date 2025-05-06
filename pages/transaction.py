@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit, 
                             QPushButton, QGridLayout, QMessageBox, QComboBox, QListWidget, QDateEdit)
-from datamodel import User, Account, Transaction, Category
-from database import get_session
+from controller.datamodel import User, Account, Transaction, Category
+from controller.database import get_session
 from datetime import datetime
 from PyQt5.QtCore import Qt, QDate
 

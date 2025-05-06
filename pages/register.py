@@ -4,8 +4,8 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, QMessageBox, QHBoxLayout
 )
 from PyQt5.QtGui import QFont
-from database import get_session
-from datamodel import User, Account
+from controller.database import get_session
+from controller.datamodel import User, Account
 
 class RegisterScreen(QWidget):
     def __init__(self, on_back_to_login, on_registration_success):
