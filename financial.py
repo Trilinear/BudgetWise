@@ -59,8 +59,6 @@ class FinancialHistory(QWidget):
 
         self.account_header = QLabel(f"Accounts:")
         self.account_combo = QComboBox()
-        for account in self.user.accounts:
-            self.account_combo.addItem(account.name)
         self.account_combo.activated.connect(self.update_category_combo)
         layout.addWidget(self.account_header)
         layout.addWidget(self.account_combo)
